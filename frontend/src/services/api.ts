@@ -1,8 +1,11 @@
 import axios from 'axios';
 
-const apiBase = import.meta.env.VITE_API_URL
-  ? `${import.meta.env.VITE_API_URL.replace(/\/+$/, '')}/api`
-  : '/api';
+// Automatically choose production Render URL when on Vercel/live, or /api on localhost
+const apiBase =
+  import.meta.env.VITE_API_URL ||
+  (typeof window !== 'undefined' && window.location.hostname !== 'localhost'
+    ? 'https://cohort-3-project.onrender.com/api'
+    : '/api');
 
 const api = axios.create({
   baseURL: apiBase,
