@@ -1,15 +1,8 @@
 import axios from 'axios';
 
-// Automatically choose production Render URL when on Vercel/live, or /api on localhost
-const apiBase =
-  import.meta.env.VITE_API_URL ||
-  (typeof window !== 'undefined' && window.location.hostname !== 'localhost'
-    ? 'https://cohort-3-project.onrender.com/api'
-    : '/api');
-
 const api = axios.create({
-  baseURL: apiBase,
-  withCredentials: true, // required to send/receive httpOnly cookies (refreshToken)
+  baseURL: '/api',
+  withCredentials: true,
   headers: {
     'Content-Type': 'application/json',
   },
@@ -57,7 +50,7 @@ api.interceptors.response.use(
       try {
         // Request new access token using httpOnly refreshToken cookie
         const res = await axios.post(
-          `${apiBase}/auth/refresh-token`,
+          '/api/auth/refresh-token',
           {},
           { withCredentials: true }
         );
