@@ -1,17 +1,23 @@
 import React, { useState, useEffect } from 'react';
 import { AuthProvider, useAuth } from './context/AuthContext';
+import { CartProvider } from './context/CartContext';
 import { Navbar } from './components/Navbar';
 import { HomePage } from './pages/HomePage';
 import { LoginPage } from './pages/LoginPage';
 import { RegisterPage } from './pages/RegisterPage';
 import { ProductDetailPage } from './pages/ProductDetailPage';
+import { AdminPage } from './pages/AdminPage';
+import { CartDrawer } from './components/CartDrawer';
+import { CheckoutModal } from './components/CheckoutModal';
+import { ProductModal } from './components/ProductModal';
 import { Product } from './types';
 
 const MainApp: React.FC = () => {
   const { user, isLoading } = useAuth();
-  const [currentPage, setCurrentPage] = useState<'home' | 'login' | 'register' | 'detail'>('login');
+  const [currentPage, setCurrentPage] = useState<'home' | 'login' | 'register' | 'detail' | 'admin'>('login');
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
 
   // Sync route based on auth state
   useEffect(() => {
@@ -23,7 +29,7 @@ const MainApp: React.FC = () => {
         }
       } else {
         // If not logged in and trying to view protected pages, force to login
-        if (currentPage === 'home' || currentPage === 'detail') {
+        if (currentPage === 'home' || currentPage === 'detail' || currentPage === 'admin') {
           setCurrentPage('login');
         }
       }
@@ -38,8 +44,8 @@ const MainApp: React.FC = () => {
     );
   }
 
-  const handleNavigate = (page: 'home' | 'login' | 'register' | 'detail') => {
-    if (!user && (page === 'home' || page === 'detail')) {
+  const handleNavigate = (page: 'home' | 'login' | 'register' | 'detail' | 'admin') => {
+    if (!user && (page === 'home' || page === 'detail' || page === 'admin')) {
       setCurrentPage('login');
       return;
     }
@@ -59,7 +65,7 @@ const MainApp: React.FC = () => {
     <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
       <Navbar
         currentPage={currentPage}
-        setCurrentPage={handleNavigate as any}
+        setCurrentPage={handleNavigate}
         onOpenCreateModal={() => {
           if (user) {
             setIsCreateModalOpen(true);
@@ -87,9 +93,11 @@ const MainApp: React.FC = () => {
         {currentPage === 'home' && user && (
           <HomePage
             onViewProduct={handleViewProduct}
-            isCreateModalOpen={isCreateModalOpen}
-            setIsCreateModalOpen={setIsCreateModalOpen}
           />
+        )}
+
+        {currentPage === 'admin' && user && (
+          <AdminPage />
         )}
 
         {currentPage === 'detail' && user && (
@@ -102,6 +110,20 @@ const MainApp: React.FC = () => {
           />
         )}
       </main>
+
+      {/* Cart Drawer & Checkout Modal */}
+      <CartDrawer onCheckout={() => setIsCheckoutOpen(true)} />
+      <CheckoutModal isOpen={isCheckoutOpen} onClose={() => setIsCheckoutOpen(false)} />
+
+      {/* Global Add Product Modal for Navbar action */}
+      <ProductModal
+        isOpen={isCreateModalOpen}
+        onClose={() => setIsCreateModalOpen(false)}
+        onSuccess={() => {
+          // refreshes are triggered internally by components
+        }}
+        productToEdit={null}
+      />
     </div>
   );
 };
@@ -109,9 +131,12 @@ const MainApp: React.FC = () => {
 export const App: React.FC = () => {
   return (
     <AuthProvider>
-      <MainApp />
+      <CartProvider>
+        <MainApp />
+      </CartProvider>
     </AuthProvider>
   );
 };
 
 export default App;
+

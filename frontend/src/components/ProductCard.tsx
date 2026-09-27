@@ -1,24 +1,22 @@
 import React from 'react';
 import { Product } from '../types';
-import { useAuth } from '../context/AuthContext';
-import { Edit3, Trash2, Eye } from 'lucide-react';
+import { useCart } from '../context/CartContext';
+import { ShoppingCart, Eye, Check } from 'lucide-react';
 
 interface ProductCardProps {
   product: Product;
-  onEdit: (product: Product) => void;
-  onDelete: (product: Product) => void;
   onView: (product: Product) => void;
 }
 
 export const ProductCard: React.FC<ProductCardProps> = ({
   product,
-  onEdit,
-  onDelete,
   onView,
 }) => {
-  const { user } = useAuth();
+  const { addToCart, cart } = useCart();
 
   const isOutOfStock = product.stock <= 0;
+  const cartItem = cart.find((item) => item.product._id === product._id);
+  const inCartQty = cartItem ? cartItem.quantity : 0;
 
   return (
     <div className="product-card">
@@ -35,7 +33,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
       </div>
 
       <div className="product-body">
-        <h3 className="product-title" title={product.name}>
+        <h3 className="product-title" title={product.name} onClick={() => onView(product)} style={{ cursor: 'pointer' }}>
           {product.name}
         </h3>
         <p className="product-desc">{product.description}</p>
@@ -50,33 +48,35 @@ export const ProductCard: React.FC<ProductCardProps> = ({
         <div className="card-actions">
           <button
             className="btn btn-outline btn-sm"
-            style={{ flex: 1 }}
             onClick={() => onView(product)}
+            title="View Details"
           >
             <Eye size={14} />
             <span>Details</span>
           </button>
 
-          {user && (
-            <>
-              <button
-                className="btn btn-outline btn-sm"
-                onClick={() => onEdit(product)}
-                title="Edit Product"
-              >
-                <Edit3 size={14} />
-              </button>
-              <button
-                className="btn btn-danger btn-sm"
-                onClick={() => onDelete(product)}
-                title="Delete Product"
-              >
-                <Trash2 size={14} />
-              </button>
-            </>
-          )}
+          <button
+            className="btn btn-primary btn-sm"
+            style={{ flex: 1 }}
+            disabled={isOutOfStock}
+            onClick={() => addToCart(product)}
+            title={isOutOfStock ? 'Item is out of stock' : 'Add item to your cart'}
+          >
+            {inCartQty > 0 ? (
+              <>
+                <Check size={14} />
+                <span>In Cart ({inCartQty})</span>
+              </>
+            ) : (
+              <>
+                <ShoppingCart size={14} />
+                <span>Add to Cart</span>
+              </>
+            )}
+          </button>
         </div>
       </div>
     </div>
   );
 };
+

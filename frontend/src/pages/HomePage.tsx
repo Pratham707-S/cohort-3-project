@@ -1,21 +1,25 @@
 import React, { useState, useEffect } from 'react';
 import { Product } from '../types';
 import api from '../services/api';
-import { ProductCard } from '../components/ProductCard';
-import { ProductModal } from '../components/ProductModal';
-import { DeleteModal } from '../components/DeleteModal';
-import { Search, PackageOpen, ChevronLeft, ChevronRight, RefreshCw } from 'lucide-react';
+ import { ProductCard } from '../components/ProductCard';
+import { Search, PackageOpen, ChevronLeft, ChevronRight, RefreshCw, Sparkles } from 'lucide-react';
 
 interface HomePageProps {
   onViewProduct: (product: Product) => void;
-  isCreateModalOpen: boolean;
-  setIsCreateModalOpen: (open: boolean) => void;
 }
+
+const CATEGORIES = [
+  'All',
+  'Electronics',
+  'Clothing',
+  'Home & Kitchen',
+  'Books',
+  'Beauty',
+  'Sports',
+];
 
 export const HomePage: React.FC<HomePageProps> = ({
   onViewProduct,
-  isCreateModalOpen,
-  setIsCreateModalOpen,
 }) => {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
@@ -28,17 +32,13 @@ export const HomePage: React.FC<HomePageProps> = ({
   const [totalPages, setTotalPages] = useState(1);
   const [totalCount, setTotalCount] = useState(0);
 
-  // modals state
-  const [editingProduct, setEditingProduct] = useState<Product | null>(null);
-  const [deletingProduct, setDeletingProduct] = useState<Product | null>(null);
-
   const fetchProducts = async () => {
     setLoading(true);
     setError(null);
     try {
       const params: any = { page, limit: 8 };
       if (searchTerm.trim()) params.search = searchTerm.trim();
-      if (category) params.category = category;
+      if (category && category !== 'All') params.category = category;
 
       const res = await api.get('/products', { params });
       setProducts(res.data.products || []);
@@ -59,22 +59,19 @@ export const HomePage: React.FC<HomePageProps> = ({
     return () => clearTimeout(delayDebounce);
   }, [searchTerm, category, page]);
 
-  const handleEdit = (product: Product) => {
-    setEditingProduct(product);
-  };
-
-  const handleDelete = (product: Product) => {
-    setDeletingProduct(product);
-  };
-
   return (
     <div className="container page-content">
+      {/* Hero Section */}
       <div className="hero-section">
         <div className="hero-header">
           <div>
-            <h1 className="hero-title">Discover & Manage Products</h1>
+            <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', background: 'var(--bg-subtle)', padding: '0.2rem 0.6rem', borderRadius: 'var(--radius-full)', fontSize: '0.75rem', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '0.5rem' }}>
+              <Sparkles size={13} color="var(--accent)" />
+              <span>Curated Lifestyle & Electronics</span>
+            </div>
+            <h1 className="hero-title">Timeless Essentials, Crafted For You</h1>
             <p className="hero-subtitle">
-              Browse the catalog, search items, or manage your inventory in real-time.
+              Explore premium products, add them to your cart, and enjoy smooth instant ordering.
             </p>
           </div>
           <button
@@ -87,14 +84,14 @@ export const HomePage: React.FC<HomePageProps> = ({
           </button>
         </div>
 
-        
+        {/* Filter Bar */}
         <div className="filter-bar">
           <div className="search-box">
             <Search className="search-icon" size={18} />
             <input
               type="text"
               className="search-input"
-              placeholder="Search by title, description..."
+              placeholder="Search products by title, keyword, or specs..."
               value={searchTerm}
               onChange={(e) => {
                 setSearchTerm(e.target.value);
@@ -120,11 +117,30 @@ export const HomePage: React.FC<HomePageProps> = ({
             <option value="Sports">Sports</option>
           </select>
         </div>
+
+        {/* Category Pills */}
+        <div className="category-pills">
+          {CATEGORIES.map((cat) => {
+            const isActive = (cat === 'All' && !category) || category === cat;
+            return (
+              <button
+                key={cat}
+                className={`category-pill ${isActive ? 'active' : ''}`}
+                onClick={() => {
+                  setCategory(cat === 'All' ? '' : cat);
+                  setPage(1);
+                }}
+              >
+                {cat}
+              </button>
+            );
+          })}
+        </div>
       </div>
 
       {error && <div className="alert alert-danger">{error}</div>}
 
-      
+      {/* Catalog Display */}
       {loading ? (
         <div className="empty-state">
           <div className="loading-spinner"></div>
@@ -137,7 +153,7 @@ export const HomePage: React.FC<HomePageProps> = ({
           <p style={{ marginTop: '0.5rem' }}>
             {searchTerm || category
               ? 'Try changing your search keywords or filter category.'
-              : 'No products available yet. Click "Add Product" to create your first item.'}
+              : 'No products available currently in the store.'}
           </p>
         </div>
       ) : (
@@ -147,14 +163,12 @@ export const HomePage: React.FC<HomePageProps> = ({
               <ProductCard
                 key={product._id}
                 product={product}
-                onEdit={handleEdit}
-                onDelete={handleDelete}
                 onView={onViewProduct}
               />
             ))}
           </div>
 
-         
+          {/* Pagination */}
           {totalPages > 1 && (
             <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '1rem', marginTop: '2.5rem' }}>
               <button
@@ -167,7 +181,7 @@ export const HomePage: React.FC<HomePageProps> = ({
               </button>
 
               <span style={{ fontSize: '0.875rem', color: 'var(--text-secondary)' }}>
-                Page <strong style={{ color: '#fff' }}>{page}</strong> of {totalPages} ({totalCount} total)
+                Page <strong style={{ color: 'var(--text-primary)' }}>{page}</strong> of {totalPages} ({totalCount} total items)
               </span>
 
               <button
@@ -182,24 +196,7 @@ export const HomePage: React.FC<HomePageProps> = ({
           )}
         </>
       )}
-  
-      <ProductModal
-        isOpen={isCreateModalOpen || editingProduct !== null}
-        onClose={() => {
-          setIsCreateModalOpen(false);
-          setEditingProduct(null);
-        }}
-        onSuccess={fetchProducts}
-        productToEdit={editingProduct}
-      />
-
-      {/* Delete Confirmation Modal */}
-      <DeleteModal
-        isOpen={deletingProduct !== null}
-        onClose={() => setDeletingProduct(null)}
-        onSuccess={fetchProducts}
-        product={deletingProduct}
-      />
     </div>
   );
 };
+
