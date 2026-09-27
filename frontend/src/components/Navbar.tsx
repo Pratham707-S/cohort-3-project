@@ -55,13 +55,15 @@ export const Navbar: React.FC<NavbarProps> = ({
                 <Store size={15} />
                 <span>Shop</span>
               </button>
-              <button
-                className={`nav-tab-btn ${currentPage === 'admin' ? 'active' : ''}`}
-                onClick={() => setCurrentPage('admin')}
-              >
-                <ShieldAlert size={15} />
-                <span>Admin Panel</span>
-              </button>
+              {user.role === 'admin' && (
+                <button
+                  className={`nav-tab-btn ${currentPage === 'admin' ? 'active' : ''}`}
+                  onClick={() => setCurrentPage('admin')}
+                >
+                  <ShieldAlert size={15} />
+                  <span>Admin Panel</span>
+                </button>
+              )}
             </div>
           )}
         </div>
@@ -79,7 +81,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                 {totalItems > 0 && <span className="cart-badge">{totalItems}</span>}
               </button>
 
-              {currentPage === 'admin' && (
+              {user.role === 'admin' && currentPage === 'admin' && (
                 <button
                   className="btn btn-primary btn-sm"
                   onClick={onOpenCreateModal}
@@ -94,6 +96,11 @@ export const Navbar: React.FC<NavbarProps> = ({
                 <User size={14} />
                 <span>
                   <strong>{user.name}</strong>
+                  {user.role === 'admin' && (
+                    <span style={{ marginLeft: '0.35rem', fontSize: '0.7rem', background: 'var(--accent)', color: '#fff', padding: '0.1rem 0.35rem', borderRadius: '4px' }}>
+                      Admin
+                    </span>
+                  )}
                 </span>
               </div>
 

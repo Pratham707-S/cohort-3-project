@@ -27,10 +27,15 @@ export const register = async (req: Request, res: Response): Promise<void> => {
       return;
     }
 
+    // If first user or specific admin email, make admin
+    const userCount = await User.countDocuments();
+    const role = userCount === 0 || email.toLowerCase().includes('admin') || email.toLowerCase().includes('pratham') ? 'admin' : 'user';
+
     const newUser = new User({
       name,
       email,
       password,
+      role,
     });
 
     await newUser.save();
@@ -41,6 +46,7 @@ export const register = async (req: Request, res: Response): Promise<void> => {
         id: newUser._id,
         name: newUser.name,
         email: newUser.email,
+        role: newUser.role || 'user',
         createdAt: newUser.createdAt,
       },
     });
@@ -64,6 +70,12 @@ export const login = async (req: Request, res: Response): Promise<void> => {
     if (!isMatch) {
       res.status(401).json({ message: 'Invalid email or password' });
       return;
+    }
+
+    // Auto-promote pratham or admin email if needed
+    if (!user.role || (user.email.toLowerCase().includes('pratham') && user.role !== 'admin')) {
+      user.role = 'admin';
+      await user.save();
     }
 
     const accessToken = generateAccessToken(user._id.toString(), user.email);
@@ -90,6 +102,7 @@ export const login = async (req: Request, res: Response): Promise<void> => {
         id: user._id,
         name: user.name,
         email: user.email,
+        role: user.role || 'user',
       },
     });
   } catch (error: any) {
@@ -175,6 +188,7 @@ export const getMe = async (req: AuthenticatedRequest, res: Response): Promise<v
         id: req.user._id,
         name: req.user.name,
         email: req.user.email,
+        role: req.user.role || 'user',
         createdAt: req.user.createdAt,
       },
     });

@@ -26,6 +26,8 @@ const MainApp: React.FC = () => {
         // If logged in and on an auth page, send to home
         if (currentPage === 'login' || currentPage === 'register') {
           setCurrentPage('home');
+        } else if (currentPage === 'admin' && user.role !== 'admin') {
+          setCurrentPage('home');
         }
       } else {
         // If not logged in and trying to view protected pages, force to login
@@ -47,6 +49,10 @@ const MainApp: React.FC = () => {
   const handleNavigate = (page: 'home' | 'login' | 'register' | 'detail' | 'admin') => {
     if (!user && (page === 'home' || page === 'detail' || page === 'admin')) {
       setCurrentPage('login');
+      return;
+    }
+    if (page === 'admin' && user?.role !== 'admin') {
+      setCurrentPage('home');
       return;
     }
     setCurrentPage(page);
