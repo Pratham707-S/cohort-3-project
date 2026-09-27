@@ -77,30 +77,53 @@ const seedData = async () => {
   try {
     await connectDB();
 
-    // Find or create admin seed user
-    let user = await User.findOne();
-    if (!user) {
-      user = new User({
-        name: 'Pratham Store Admin',
-        email: 'admin@storecraft.com',
-        password: 'Password123',
+    // 1. Find or create admin seed user
+    let admin = await User.findOne({ email: 'pratham@test.com' });
+    if (!admin) {
+      admin = new User({
+        name: 'Pratham (Store Admin)',
+        email: 'pratham@test.com',
+        password: 'password123',
+        role: 'admin',
       });
-      await user.save();
+      await admin.save();
+      console.log('✅ Admin user created: pratham@test.com / password123');
+    } else {
+      admin.role = 'admin';
+      await admin.save();
+      console.log('✅ Admin user updated: pratham@test.com');
     }
 
-    // Insert demo products
+    // 2. Find or create customer seed user
+    let customer = await User.findOne({ email: 'customer@test.com' });
+    if (!customer) {
+      customer = new User({
+        name: 'Rahul Customer',
+        email: 'customer@test.com',
+        password: 'password123',
+        role: 'user',
+      });
+      await customer.save();
+      console.log('✅ Customer user created: customer@test.com / password123');
+    } else {
+      customer.role = 'user';
+      await customer.save();
+      console.log('✅ Customer user updated: customer@test.com');
+    }
+
+    // 3. Insert demo products
     for (const prod of demoProducts) {
       const exists = await Product.findOne({ name: prod.name });
       if (!exists) {
         await Product.create({
           ...prod,
-          createdBy: user._id,
+          createdBy: admin._id,
         });
         console.log(`Added product: ${prod.name}`);
       }
     }
 
-    console.log('✅ Demo products seeded successfully into MongoDB Atlas!');
+    console.log('✅ Demo products & users seeded successfully into MongoDB Atlas!');
     process.exit(0);
   } catch (error) {
     console.error('Seed error:', error);
@@ -109,3 +132,4 @@ const seedData = async () => {
 };
 
 seedData();
+
