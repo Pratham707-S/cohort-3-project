@@ -591,7 +591,6 @@ app.use((req, res) => {
 app.use(errorHandler);
 var app_default = app;
 
-// backend/src/serverless.ts
 var serverless_default = app_default;
-// Annotate the CommonJS export names for ESM import in node:
-0 && (module.exports = {});
+module.exports = app_default;
+module.exports.default = app_default;
