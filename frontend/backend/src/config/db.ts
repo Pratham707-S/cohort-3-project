@@ -1,8 +1,6 @@
 import mongoose from 'mongoose';
 
-const MONGO_URI =
-  process.env.MONGO_URI ||
-  'mongodb+srv://pratham1226667_db_user:C9szgKlGzsK6IWfx@cluster1.dexjfja.mongodb.net/ecommerce_db?retryWrites=true&w=majority';
+const MONGO_URI = process.env.MONGO_URI || '';
 
 let cachedPromise: Promise<typeof mongoose> | null = null;
 

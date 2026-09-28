@@ -511,7 +511,7 @@ var errorHandler = (err, req, res, next) => {
 
 // backend/src/config/db.ts
 import mongoose3 from "mongoose";
-var MONGO_URI = process.env.MONGO_URI || "mongodb+srv://pratham1226667_db_user:C9szgKlGzsK6IWfx@cluster1.dexjfja.mongodb.net/ecommerce_db?retryWrites=true&w=majority";
+var MONGO_URI = process.env.MONGO_URI || "";
 var cachedPromise = null;
 var connectDB = async () => {
   if (mongoose3.connection.readyState >= 1) {
