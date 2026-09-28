@@ -35,8 +35,9 @@ app.use(async (req: Request, res: Response, next: NextFunction) => {
   }
 });
 
-// API Routes
+// API Routes (supports both /api/* and direct /* routing)
 app.use('/api', routes);
+app.use('/', routes);
 
 // 404 handler
 app.use((req: Request, res: Response) => {
